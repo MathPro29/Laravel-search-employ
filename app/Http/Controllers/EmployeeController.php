@@ -2,32 +2,46 @@
 
 namespace App\Http\Controllers;
 
-
-use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
+use Illuminate\Response;
+use Inertia\Inertia;
 
 class EmployeeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-        public function index(Request $request)
+    public function index(Request $request)
     {
-        $query = $request->input('search'); // รับค่าจาก URL
-        $order = $request->input('order', 'asc'); // รับการเรียงลำดับจาก URL (ค่า default คือ 'asc')
+        // Get search query and sanitize input to prevent issues
+        $query = $request->input('search', '');
 
+        // Get sort and order from the request
+        $sortField = $request->input('sort', 'emp_no');
+        $sortOrder = $request->input('order', 'asc');
+
+        // Build the query
         $employees = DB::table('employees')
-            ->where('emp_no', 'like', "%{$query}%")  // ค้นหาจาก ID
-            ->orWhere('first_name', 'like', "%{$query}%")  // ค้นหาจาก first_name
-            ->orWhere('last_name', 'like', "%{$query}%")  // ค้นหาจาก last_name
-            ->orderBy('emp_no', $order) // การเรียงลำดับตาม emp_no
+            ->where(function($queryBuilder) use ($query) {
+                // Apply search to first and last names
+                $queryBuilder->where('first_name', 'like', '%' . $query . '%')
+                             ->orWhere('last_name', 'like', '%' . $query . '%')
+                             ->orWhere('emp_no', '=', $query);
+            })
+            // Sort by the specified field, default to 'emp_no' if not provided
+            ->orderBy($sortField, $sortOrder)
+            // Paginate results
             ->paginate(10);
 
+        // คืนค่า
         return Inertia::render('Employee/Index', [
             'employees' => $employees,
-            'query' => $query,  // ส่ง query กลับไปยัง React component
-            'order' => $order,  // ส่งการเรียงลำดับกลับไปยัง React component
+            'query' => $query,
+            'sortField' => $sortField,
+            'sortOrder' => $sortOrder,
         ]);
     }
 
