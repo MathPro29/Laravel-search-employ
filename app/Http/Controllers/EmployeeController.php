@@ -15,35 +15,44 @@ class EmployeeController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    {
-        // Get search query and sanitize input to prevent issues
-        $query = $request->input('search', '');
+{
+    // รับค่าค้นหาจากคำขอ และตั้งค่าเริ่มต้นเป็นค่าว่าง ('') หากไม่มีการส่งค่ามา
+    $query = $request->input('search', '');
 
-        // Get sort and order from the request
-        $sortField = $request->input('sort', 'emp_no');
-        $sortOrder = $request->input('order', 'asc');
+    // รับค่าฟิลด์ที่จะใช้ในการจัดเรียง (sort) และทิศทางการเรียงลำดับ (order)
+    $sortField = $request->input('sort', 'emp_no');
+    // หากไม่ได้ส่งค่ามา จะใช้ค่าเริ่มต้นเป็น 'emp_no' และเรียงจากน้อยไปมาก ('asc')
+    $sortOrder = $request->input('order', 'asc');
 
-        // Build the query
-        $employees = DB::table('employees')
-            ->where(function($queryBuilder) use ($query) {
-                // Apply search to first and last names
-                $queryBuilder->where('first_name', 'like', '%' . $query . '%')
-                             ->orWhere('last_name', 'like', '%' . $query . '%')
-                             ->orWhere('emp_no', '=', $query);
-            })
-            // Sort by the specified field, default to 'emp_no' if not provided
-            ->orderBy($sortField, $sortOrder)
-            // Paginate results
-            ->paginate(10);
+    // สร้างคำสั่ง Query เพื่อดึงข้อมูลจากตาราง employees
+    $employees = DB::table('employees')
+        ->where(function($queryBuilder) use ($query) {
+            // เพิ่มเงื่อนไขการค้นหา:
+            // ค้นหาในฟิลด์ first_name หรือ last_name โดยใช้คำที่ผู้ใช้กรอก (search)
+            // หรือค้นหาในฟิลด์ emp_no ที่มีค่าเท่ากับคำค้น (search)
+            $queryBuilder->where('first_name', 'like', '%' . $query . '%')
+                         ->orWhere('last_name', 'like', '%' . $query . '%')
+                         ->orWhere('emp_no', '=', $query)
+                         ->orWhere('birth_date', '=', $query);
+        })
+        // เรียงลำดับข้อมูลตามฟิลด์ที่ระบุ โดยค่าเริ่มต้นจะใช้ 'emp_no'
+        // เรียงลำดับจากน้อยไปมาก ('asc') หรือจากมากไปน้อย ('desc') ตามที่ผู้ใช้กำหนด
+        ->orderBy($sortField, $sortOrder)
+        // แบ่งหน้าผลลัพธ์ โดยกำหนดให้แสดงหน้าละ 10 รายการ
+        ->paginate(10);
 
-        // คืนค่า
-        return Inertia::render('Employee/Index', [
-            'employees' => $employees,
-            'query' => $query,
-            'sortField' => $sortField,
-            'sortOrder' => $sortOrder,
-        ]);
-    }
+    // ส่งข้อมูลไปยัง  React component ผ่าน Inertia
+    // 'employees' คือข้อมูลพนักงานที่ได้จาก Query (รวมข้อมูลการแบ่งหน้า)
+    // 'query' คือคำค้นที่ผู้ใช้กรอก
+    // 'sortField' และ 'sortOrder' คือข้อมูลการจัดเรียงที่ผู้ใช้ระบุ
+    return Inertia::render('Employee/Index', [
+        'employees' => $employees,
+        'query' => $query,
+        'sortField' => $sortField,
+        'sortOrder' => $sortOrder,
+    ]);
+}
+
 
 
     /**

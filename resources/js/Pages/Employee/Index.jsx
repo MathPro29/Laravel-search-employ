@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 // Component สำหรับแสดงรายการพนักงาน พร้อมฟังก์ชันค้นหา จัดเรียง และแบ่งหน้า
 export default function Index({ employees, query, sortField, sortOrder }) {
@@ -39,6 +40,7 @@ export default function Index({ employees, query, sortField, sortOrder }) {
     };
 
     return (
+        <AuthenticatedLayout>
         <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50">
             {/* หัวข้อหน้า */}
             <h1 className="text-3xl font-bold mb-6">Employee List</h1>
@@ -49,21 +51,21 @@ export default function Index({ employees, query, sortField, sortOrder }) {
                     type="text"
                     value={search} // ค่าที่ผู้ใช้ป้อนในช่องค้นหา
                     onChange={(e) => setSearch(e.target.value)} // อัปเดต search state
-                    className="flex-grow border border-gray-300 rounded px-3 py-2 shadow-sm focus:ring-2 focus:border-none focus:ring-red-500 focus:outline-none"
-                    placeholder="Search by ID, First Name, Last Name"
+                    className="flex-grow border border-gray-300 rounded px-3 py-2 shadow-sm focus:ring-2 focus:border-none focus:ring-green-500 focus:outline-none"
+                    placeholder="ค้นหาตาม ID, ชื่อ, นามสกุล"
                 />
                 <button
                     type="submit"
-                    className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 focus:ring-2 focus:ring-red-500"
+                    className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600 focus:ring-2 focus:ring-green-500"
                 >
-                    Search
+                    ค้นหา
                 </button>
                 <button
                     type="button"
                     onClick={handleReset} // รีเซ็ตค่าการค้นหาและการจัดเรียง
-                    className="bg-none text-red-500 border-solid px-4 py-2 rounded shadow hover:bg-red-600 hover:text-white transition duration-300 focus:ring-2 focus:ring-gray-500"
+                    className="bg-none text-red-500 border-solid px-4 py-2 rounded shadow hover:bg-red-600 hover:text-white transition duration-300 focus:ring-2 focus:ring-red-500"
                 >
-                    Reset
+                    ล้างค่า
                 </button>
             </form>
 
@@ -76,27 +78,27 @@ export default function Index({ employees, query, sortField, sortOrder }) {
                                 {/* หัวคอลัมน์ที่สามารถคลิกเพื่อจัดเรียงได้ */}
                                 <th
                                     onClick={() => handleSort('emp_no')} // เรียงตาม ID
-                                    className="border border-gray-300 px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                    className="border border-gray-300 px-4 py-2 cursor-pointer"
                                 >
                                     ID {sort.field === 'emp_no' && (sort.order === 'asc' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     onClick={() => handleSort('first_name')} // เรียงตาม First Name
-                                    className="border border-gray-300 px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                    className="border border-gray-300 px-4 py-2 cursor-pointer"
                                 >
-                                    First Name {sort.field === 'first_name' && (sort.order === 'asc' ? '↑' : '↓')}
+                                    ชื่อ {sort.field === 'first_name' && (sort.order === 'asc' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     onClick={() => handleSort('last_name')} // เรียงตาม Last Name
-                                    className="border border-gray-300 px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                    className="border border-gray-300 px-4 py-2 cursor-pointer"
                                 >
-                                    Last Name {sort.field === 'last_name' && (sort.order === 'asc' ? '↑' : '↓')}
+                                    นามสกุล {sort.field === 'last_name' && (sort.order === 'asc' ? '↑' : '↓')}
                                 </th>
                                 <th
                                     onClick={() => handleSort('birth_date')} // เรียงตามวันเกิด
-                                    className="border border-gray-300 px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                    className="border border-gray-300 px-4 py-2 cursor-pointer"
                                 >
-                                    Birth Date {sort.field === 'birth_date' && (sort.order === 'asc' ? '↑' : '↓')}
+                                    วันเกิด {sort.field === 'birth_date' && (sort.order === 'asc' ? '↑' : '↓')}
                                 </th>
                             </tr>
                         </thead>
@@ -119,12 +121,12 @@ export default function Index({ employees, query, sortField, sortOrder }) {
                             onClick={() => handlePagination(employees.prev_page_url)} // ไปหน้าก่อนหน้า
                             disabled={!employees.prev_page_url} // ปิดการใช้งานหากไม่มีหน้าก่อนหน้า
                             className={`px-4 py-2 rounded font-medium shadow ${employees.prev_page_url
-                                ? 'bg-red-500 text-white hover:bg-red-600'
+                                ? 'bg-green-500 text-white hover:bg-green-600'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                             aria-label="Previous page"
                         >
-                            Previous
+                           {`<`} Previous
                         </button>
                         <span className="text-gray-600 font-medium">
                             Page {employees.current_page} of {employees.last_page}
@@ -133,19 +135,20 @@ export default function Index({ employees, query, sortField, sortOrder }) {
                             onClick={() => handlePagination(employees.next_page_url)} // ไปหน้าถัดไป
                             disabled={!employees.next_page_url} // ปิดการใช้งานหากไม่มีหน้าถัดไป
                             className={`px-4 py-2 rounded font-medium shadow ${employees.next_page_url
-                                ? 'bg-red-500 text-white hover:bg-red-600'
+                                ? 'bg-green-500 text-white hover:bg-green-600'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                             aria-label="Next page"
                         >
-                            Next
+                            Next {`>`}
                         </button>
                     </div>
                 </div>
             ) : (
                 // กรณีไม่มีข้อมูลพนักงาน
-                <p className="text-gray-500 text-center mt-6">No employees found.</p>
+                <p className="text-red-500 text-xl text-center mt-6">Out of data</p>
             )}
         </div>
+        </AuthenticatedLayout>
     );
 }
